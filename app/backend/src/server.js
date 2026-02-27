@@ -31,6 +31,7 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 // Import security configurations
 import { corsOptions, applySecurityMiddleware } from '../config/security.js';
 import { requestLogger } from './utils/logger.js';
+import { validateEnv } from './utils/validateEnv.js';
 
 // Import routes
 import contactRoutes from './routes/contact.js';
@@ -38,6 +39,9 @@ import contactRoutes from './routes/contact.js';
 // ============================================
 // INITIALIZE EXPRESS APP
 // ============================================
+
+// Validate environment variables on startup
+validateEnv();
 
 const app = express();
 const PORT = process.env.PORT || 3000;

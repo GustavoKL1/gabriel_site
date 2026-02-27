@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Loader2, ExternalLink } from 'lucide-react';
 
 interface SketchfabEmbedProps {
@@ -16,7 +16,27 @@ export default function SketchfabEmbed({
 }: SketchfabEmbedProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '100px' }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   const handleLoad = () => {
     setIsLoading(false);
@@ -48,6 +68,7 @@ export default function SketchfabEmbed({
   if (hasError) {
     return (
       <div 
+        ref={containerRef}
         className={`relative bg-gray-900 rounded-xl overflow-hidden flex items-center justify-center ${className}`}
         style={{ height }}
       >
@@ -69,28 +90,31 @@ export default function SketchfabEmbed({
 
   return (
     <div 
+      ref={containerRef}
       className={`relative bg-gray-900 rounded-xl overflow-hidden ${className}`}
       style={{ height }}
     >
       {/* Loading State */}
-      {isLoading && (
+      {(isLoading || !isVisible) && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 z-10">
           <Loader2 className="w-10 h-10 text-engine-blue animate-spin mb-3" />
-          <p className="text-gray-400 text-sm">Carregando modelo 3D...</p>
+          <p className="text-gray-400 text-sm">{isVisible ? 'Carregando modelo 3D...' : 'Aguardando...'}</p>
         </div>
       )}
 
       {/* Sketchfab Iframe */}
-      <iframe
-        ref={iframeRef}
-        title={title}
-        src={embedUrl}
-        className="w-full h-full border-0"
-        allow="autoplay; fullscreen; xr-spatial-tracking"
-        onLoad={handleLoad}
-        onError={handleError}
-        loading="lazy"
-      />
+      {isVisible && (
+        <iframe
+          ref={iframeRef}
+          title={title}
+          src={embedUrl}
+          className="w-full h-full border-0"
+          allow="autoplay; fullscreen; xr-spatial-tracking"
+          onLoad={handleLoad}
+          onError={handleError}
+          loading="lazy"
+        />
+      )}
 
       {/* Overlay Controls */}
       <div className="absolute top-3 right-3 flex gap-2 z-20">
