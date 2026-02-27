@@ -1,25 +1,25 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo, lazy, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, MapPin, Calendar, ExternalLink, Box } from 'lucide-react';
-import SketchfabEmbed from '@/components/SketchfabEmbed';
+import { ArrowRight, MapPin, Calendar, ExternalLink, Box, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import projectsData from '@/data/projects.json';
+import type { Project } from '@/types/project';
 
-interface Project {
-  id: number;
-  title: string;
-  category: 'civil' | 'electrical';
-  location: string;
-  year: string;
-  image: string;
-  description: string;
-  sketchfabId?: string;
-  sketchfabTitle?: string;
-}
+// Lazy load SketchfabEmbed
+const SketchfabEmbed = lazy(() => import('@/components/SketchfabEmbed'));
 
 interface ProjectCardProps {
   project: Project;
@@ -45,6 +45,7 @@ function ProjectCard({ project, index, isVisible, onView3D }: ProjectCardProps) 
         <img
           src={project.image}
           alt={project.title}
+          loading="lazy"
           className={`w-full h-full object-cover transition-all duration-700 ${
             isHovered ? 'scale-110' : 'scale-100'
           }`}
@@ -138,7 +139,10 @@ export default function Projects() {
   const [activeFilter, setActiveFilter] = useState<'all' | 'civil' | 'electrical'>('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const projects: Project[] = projectsData as Project[];
+  const ITEMS_PER_PAGE = 6;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -158,76 +162,28 @@ export default function Projects() {
     return () => observer.disconnect();
   }, []);
 
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter]);
+
   const handleView3D = (project: Project) => {
     setSelectedProject(project);
     setIsDialogOpen(true);
   };
 
-  const projects: Project[] = [
-    {
-      id: 1,
-      title: 'Torre Skyline',
-      category: 'civil',
-      location: 'Centro da Metrópole',
-      year: '2023',
-      image: '/images/project-skyline.jpg',
-      description: 'Um edifício comercial de 45 andares com design estrutural inovador e práticas sustentáveis de construção.',
-      sketchfabId: '9bdbc1a76f4e43e893978e67678d6efd',
-      sketchfabTitle: 'Modern Skyscraper',
-    },
-    {
-      id: 2,
-      title: 'Modernização da Rede Metro',
-      category: 'electrical',
-      location: 'Centro da Cidade',
-      year: '2023',
-      image: '/images/project-metro.jpg',
-      description: 'Upgrade completo da infraestrutura elétrica do sistema metroviário, melhorando confiabilidade e eficiência.',
-    },
-    {
-      id: 3,
-      title: 'Ponte do Porto',
-      category: 'civil',
-      location: 'Distrito Costeiro',
-      year: '2022',
-      image: '/images/project-bridge.jpg',
-      description: 'Ponte suspensa emblemática conectando os distritos do porto com um vão de 1,2 quilômetros.',
-      sketchfabId: '88f76c4bf89a4f25a9e31556cd80e1ae',
-      sketchfabTitle: 'Suspension Bridge',
-    },
-    {
-      id: 4,
-      title: 'Usina de Energia Industrial',
-      category: 'electrical',
-      location: 'Zona Industrial',
-      year: '2022',
-      image: '/images/project-plant.jpg',
-      description: 'Instalação de geração de energia de última geração com capacidades avançadas de integração à rede.',
-    },
-    {
-      id: 5,
-      title: 'Parque Solar',
-      category: 'electrical',
-      location: 'Interior',
-      year: '2023',
-      image: '/images/project-solar.jpg',
-      description: 'Instalação solar de 50MW fornecendo energia limpa para mais de 15.000 residências na região.',
-    },
-    {
-      id: 6,
-      title: 'Interchange de Rodovia',
-      category: 'civil',
-      location: 'Conector Urbano',
-      year: '2021',
-      image: '/images/project-highway.jpg',
-      description: 'Complexo intercâmbio de rodovia em múltiplos níveis melhorando o fluxo de tráfego e reduzindo congestionamentos.',
-    },
-  ];
-
-  const filteredProjects =
-    activeFilter === 'all'
+  const filteredProjects = useMemo(() => {
+    return activeFilter === 'all'
       ? projects
       : projects.filter((p) => p.category === activeFilter);
+  }, [activeFilter, projects]);
+
+  const totalPages = Math.ceil(filteredProjects.length / ITEMS_PER_PAGE);
+
+  const currentProjects = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredProjects.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredProjects, currentPage]);
 
   const filters = [
     { key: 'all', label: 'Todos os Projetos' },
@@ -306,8 +262,8 @@ export default function Projects() {
         </div>
 
         {/* Projects Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map((project, index) => (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          {currentProjects.map((project, index) => (
             <ProjectCard
               key={project.id}
               project={project}
@@ -317,6 +273,54 @@ export default function Projects() {
             />
           ))}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className={`transition-all duration-700 delay-400 ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+          }`}>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage > 1) setCurrentPage(p => p - 1);
+                    }}
+                    className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      href="#"
+                      isActive={currentPage === i + 1}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setCurrentPage(i + 1);
+                      }}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage < totalPages) setCurrentPage(p => p + 1);
+                    }}
+                    className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
 
         {/* View All CTA */}
         <div
@@ -345,12 +349,21 @@ export default function Projects() {
           </DialogHeader>
           <div className="p-4">
             {selectedProject?.sketchfabId && (
-              <SketchfabEmbed
-                modelId={selectedProject.sketchfabId}
-                title={selectedProject.sketchfabTitle || selectedProject.title}
-                height="500px"
-                className="rounded-lg"
-              />
+              <Suspense
+                fallback={
+                  <div className="h-[500px] w-full flex flex-col items-center justify-center bg-gray-900 rounded-lg">
+                    <Loader2 className="w-10 h-10 text-engine-blue animate-spin mb-3" />
+                    <p className="text-gray-400 text-sm">Carregando visualizador...</p>
+                  </div>
+                }
+              >
+                <SketchfabEmbed
+                  modelId={selectedProject.sketchfabId}
+                  title={selectedProject.sketchfabTitle || selectedProject.title}
+                  height="500px"
+                  className="rounded-lg"
+                />
+              </Suspense>
             )}
             <div className="mt-4 flex items-center justify-between">
               <p className="text-gray-400 text-sm">
