@@ -13,9 +13,26 @@ export default function Hero() {
   }, []);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    let rect = heroRef.current?.getBoundingClientRect() ?? null;
+
+    const updateRect = () => {
       if (heroRef.current) {
-        const rect = heroRef.current.getBoundingClientRect();
+        rect = heroRef.current.getBoundingClientRect();
+      }
+    };
+
+    const resizeObserver = new ResizeObserver(updateRect);
+
+    if (heroRef.current) {
+      resizeObserver.observe(heroRef.current);
+    }
+
+    // Also observe scroll to update the rect relative to viewport
+    window.addEventListener('scroll', updateRect, { passive: true });
+    window.addEventListener('resize', updateRect, { passive: true });
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (rect) {
         setMousePos({
           x: (e.clientX - rect.left) / rect.width,
           y: (e.clientY - rect.top) / rect.height,
@@ -23,8 +40,13 @@ export default function Hero() {
       }
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('scroll', updateRect);
+      window.removeEventListener('resize', updateRect);
+      resizeObserver.disconnect();
+    };
   }, []);
 
   const scrollToProjects = () => {
