@@ -13,18 +13,31 @@ export default function Hero() {
   }, []);
 
   useEffect(() => {
+    let requestRef: number | null = null;
+
     const handleMouseMove = (e: MouseEvent) => {
-      if (heroRef.current) {
-        const rect = heroRef.current.getBoundingClientRect();
-        setMousePos({
-          x: (e.clientX - rect.left) / rect.width,
-          y: (e.clientY - rect.top) / rect.height,
-        });
+      if (requestRef !== null) {
+        cancelAnimationFrame(requestRef);
       }
+
+      requestRef = requestAnimationFrame(() => {
+        if (heroRef.current) {
+          const rect = heroRef.current.getBoundingClientRect();
+          setMousePos({
+            x: (e.clientX - rect.left) / rect.width,
+            y: (e.clientY - rect.top) / rect.height,
+          });
+        }
+      });
     };
 
     window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (requestRef !== null) {
+        cancelAnimationFrame(requestRef);
+      }
+    };
   }, []);
 
   const scrollToProjects = () => {
