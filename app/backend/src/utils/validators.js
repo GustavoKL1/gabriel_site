@@ -12,6 +12,7 @@
  */
 
 import { body, validationResult } from 'express-validator';
+import logger from './logger.js';
 
 // ============================================
 // VALIDATION RULES
@@ -282,7 +283,15 @@ export const isValidEmail = (email) => {
  */
 const emailSubmissions = new Map();
 
+// Flag to ensure we only log the in-memory warning once
+let hasLoggedInMemoryWarning = false;
+
 export const checkEmailRateLimit = (email, maxSubmissions = 5, windowMs = 3600000) => {
+  if (!hasLoggedInMemoryWarning) {
+    logger.warn('Using simple in-memory store for email-based rate limiting. In production, use Redis!');
+    hasLoggedInMemoryWarning = true;
+  }
+
   const now = Date.now();
   const key = email.toLowerCase();
   
@@ -298,6 +307,10 @@ export const checkEmailRateLimit = (email, maxSubmissions = 5, windowMs = 360000
   );
   
   if (validSubmissions.length >= maxSubmissions) {
+    // If we've removed stale submissions but are still over the limit,
+    // update the map to clear out the old memory for this specific key.
+    emailSubmissions.set(key, validSubmissions);
+
     return {
       allowed: false,
       remaining: 0,
@@ -307,6 +320,8 @@ export const checkEmailRateLimit = (email, maxSubmissions = 5, windowMs = 360000
   
   // Add current submission
   validSubmissions.push(now);
+
+  // Memory Cleanup: Update the map with only valid submissions to prevent unbounded growth.
   emailSubmissions.set(key, validSubmissions);
   
   return {
