@@ -247,8 +247,15 @@ export const attackPatternCheck = (req, res, next) => {
  * Validate email format and check for disposable emails
  */
 export const isValidEmail = (email) => {
-  // Basic format validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || typeof email !== 'string') {
+    return false;
+  }
+
+  // More robust format validation
+  // Local part: allow standard chars and special chars (with + addressing) including quotes.
+  // Domain part: restrict special chars, ensure no consecutive dots, etc.
+  // Note: the original W3C regex doesn't explicitly match "test"@example.com without adjustments.
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~"-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
   if (!emailRegex.test(email)) {
     return false;
   }

@@ -23,6 +23,9 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
+    "@jest/globals": "^30.2.0",
+    "cross-env": "^10.1.0",
+    "jest": "^30.2.0",
     "nodemon": "^3.0.2"
   },
   "engines": {
