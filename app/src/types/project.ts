@@ -1,7 +1,7 @@
 export interface Project {
   id: number;
   title: string;
-  category: 'civil' | 'electrical';
+  category: 'civil';
   location: string;
   year: string;
   image: string;

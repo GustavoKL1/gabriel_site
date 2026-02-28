@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, HardHat, Zap, ClipboardCheck } from 'lucide-react';
+import { ArrowRight, HardHat, ClipboardCheck } from 'lucide-react';
 
 interface ServiceCardProps {
   icon: React.ReactNode;
@@ -133,18 +133,6 @@ export default function Services() {
         'Supervisão de Construção',
       ],
       image: '/images/service-civil.jpg',
-    },
-    {
-      icon: <Zap className="w-7 h-7" />,
-      title: 'Engenharia Elétrica',
-      description: 'Design e implementação de sistemas elétricos de ponta para infraestrutura moderna e instalações industriais.',
-      features: [
-        'Sistemas de Distribuição de Energia',
-        'Design de Iluminação',
-        'Gestão de Energia',
-        'Automação e Controle',
-      ],
-      image: '/images/service-electrical.jpg',
     },
     {
       icon: <ClipboardCheck className="w-7 h-7" />,
