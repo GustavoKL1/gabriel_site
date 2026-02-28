@@ -1,0 +1,5 @@
+# Palette's Journal
+
+## 2025-02-17 - Accessible Form Validation in Admin Panels
+**Learning:** When building complex forms for admins (like adding projects with URLs), standard required fields aren't enough. Users frequently need to know exactly *what* went wrong with a URL field. Visually indicating a required field with an asterisk while simultaneously using `<span className="sr-only"> (required)</span>` ensures both sighted and screen-reader users are given equivalent context. Also, programmatically moving focus to the first invalid field upon a failed submit attempt dramatically improves the recovery flow, rather than making the user tab completely through the page to find the red text.
+**Action:** Always map inline error messages to the input they reference using `aria-describedby` and `aria-invalid={true}`. Make sure to capture the specific error on submit, and use Javascript to immediately focus the input (`document.getElementById(errorKey)?.focus()`) so the user can begin fixing the issue without manual searching.
