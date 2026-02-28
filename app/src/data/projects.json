@@ -11,15 +11,6 @@
     "sketchfabTitle": "Modern Skyscraper"
   },
   {
-    "id": 2,
-    "title": "Modernização da Rede Metro",
-    "category": "electrical",
-    "location": "Centro da Cidade",
-    "year": "2023",
-    "image": "/images/project-metro.jpg",
-    "description": "Upgrade completo da infraestrutura elétrica do sistema metroviário, melhorando confiabilidade e eficiência."
-  },
-  {
     "id": 3,
     "title": "Ponte do Porto",
     "category": "civil",
@@ -29,24 +20,6 @@
     "description": "Ponte suspensa emblemática conectando os distritos do porto com um vão de 1,2 quilômetros.",
     "sketchfabId": "88f76c4bf89a4f25a9e31556cd80e1ae",
     "sketchfabTitle": "Suspension Bridge"
-  },
-  {
-    "id": 4,
-    "title": "Usina de Energia Industrial",
-    "category": "electrical",
-    "location": "Zona Industrial",
-    "year": "2022",
-    "image": "/images/project-plant.jpg",
-    "description": "Instalação de geração de energia de última geração com capacidades avançadas de integração à rede."
-  },
-  {
-    "id": 5,
-    "title": "Parque Solar",
-    "category": "electrical",
-    "location": "Interior",
-    "year": "2023",
-    "image": "/images/project-solar.jpg",
-    "description": "Instalação solar de 50MW fornecendo energia limpa para mais de 15.000 residências na região."
   },
   {
     "id": 6,

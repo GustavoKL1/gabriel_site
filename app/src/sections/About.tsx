@@ -174,7 +174,7 @@ export default function About() {
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}
             >
-              Somos uma empresa líder em engenharia especializada em infraestrutura civil e elétrica. 
+              Somos uma empresa líder em engenharia especializada em infraestrutura civil.
               Com décadas de experiência combinada, transformamos desafios complexos em 
               obras-primas estruturais. Nossa equipe de engenheiros especialistas traz inovação, 
               precisão e dedicação para cada projeto que realizamos.
@@ -188,7 +188,6 @@ export default function About() {
             >
               {[
                 'Excelência em Design Estrutural',
-                'Integração de Sistemas Elétricos',
                 'Gestão de Projetos',
                 'Soluções Sustentáveis',
               ].map((feature, index) => (

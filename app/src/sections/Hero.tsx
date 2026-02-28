@@ -126,7 +126,7 @@ export default function Hero() {
         >
           <span className="w-2 h-2 rounded-full bg-engine-orange animate-pulse" />
           <span className="text-white/90 text-sm font-medium tracking-wide">
-            Excelência em Engenharia Civil e Elétrica
+            Excelência em Engenharia Civil
           </span>
         </div>
 
@@ -150,7 +150,7 @@ export default function Hero() {
           }`}
           style={{ transitionDelay: '0.6s' }}
         >
-          Excelência Estrutural e Elétrica. Transformamos desafios complexos em 
+          Excelência Estrutural. Transformamos desafios complexos em
           obras-primas estruturais que resistem ao teste do tempo.
         </p>
 

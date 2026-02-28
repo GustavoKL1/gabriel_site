@@ -136,7 +136,7 @@ function ProjectCard({ project, index, isVisible, onView3D }: ProjectCardProps) 
 
 export default function Projects() {
   const [isVisible, setIsVisible] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'civil' | 'electrical'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'civil'>('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -183,7 +183,6 @@ export default function Projects() {
   const filters = [
     { key: 'all', label: 'Todos os Projetos' },
     { key: 'civil', label: 'Engenharia Civil' },
-    { key: 'electrical', label: 'Engenharia Elétrica' },
   ] as const;
 
   return (
@@ -229,7 +228,7 @@ export default function Projects() {
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}
             >
-              Explore nosso portfólio de projetos bem-sucedidos de engenharia civil e elétrica. 
+              Explore nosso portfólio de projetos bem-sucedidos de engenharia civil.
               Alguns projetos incluem visualizações 3D interativas.
             </p>
           </div>

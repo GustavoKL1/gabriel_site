@@ -3,7 +3,6 @@ import { HardHat, MapPin, Phone, Mail, Linkedin, Twitter, Facebook, Instagram } 
 const footerLinks = {
   services: [
     { label: 'Engenharia Civil', href: '#services' },
-    { label: 'Engenharia Elétrica', href: '#services' },
     { label: 'Consultoria', href: '#services' },
     { label: 'Gestão de Projetos', href: '#services' },
   ],
@@ -54,7 +53,7 @@ export default function Footer() {
                 </span>
               </a>
               <p className="text-gray-400 leading-relaxed mb-6 max-w-sm">
-                Empresa líder em engenharia especializada em infraestrutura civil e elétrica. 
+                Empresa líder em engenharia especializada em infraestrutura civil.
                 Construindo o mundo do amanhã com precisão e inovação.
               </p>
               
