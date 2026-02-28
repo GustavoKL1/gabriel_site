@@ -70,7 +70,11 @@ export default function Hero() {
       >
         <img
           src="/images/hero-bg.jpg"
-          srcSet="/images/hero-bg.jpg 1344w"
+          srcSet="
+            /images/hero-bg-640.jpg 640w,
+            /images/hero-bg-1024.jpg 1024w,
+            /images/hero-bg.jpg 1344w
+          "
           sizes="100vw"
           fetchPriority="high"
           loading="eager"
