@@ -14,6 +14,8 @@ export const validateEnv = () => {
     'SMTP_USER',
     'SMTP_PASS',
     'RECIPIENT_EMAIL',
+    'ADMIN_TOKEN',
+    'ADMIN_ALLOWED_IPS',
   ];
 
   const missingVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);

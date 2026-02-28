@@ -1,0 +1,5 @@
+# BOLT'S JOURNAL - CRITICAL LEARNINGS ONLY
+
+## 2024-05-14 - [In-memory file reads/writes with fs vs database lookup]
+**Learning:** Using an in-memory javascript Array/Map (`app/backend/src/services/projectService.js`) initialized at application startup on Node provides O(1) reads and heavily accelerates backend write ops for JSON stores, skipping event-loop blocking synchronous FS ops commonly used for simple state files like `projects.json`. When implementing an upload pipeline, combining memory state updates with fire-and-forget `fs.promises.writeFile` calls enables maximum request throughput with eventual disk consistency, vastly outperforming repetitive `fs.readFileSync/fs.writeFileSync` patterns on every request.
+**Action:** When working on JSON-file data stores, always hydrate the state to memory on startup and run non-blocking asynchronous modifications against the disk to achieve database-level memory speeds on zero-dependency JSON backends. Use `fs.promises.unlink` as a fire-and-forget promise to non-blockingly prune orphaned static files (like images) to avoid lagging the delete response cycle.
