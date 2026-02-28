@@ -55,6 +55,10 @@ export default function Hero() {
       >
         <img
           src="/images/hero-bg.jpg"
+          srcSet="/images/hero-bg.jpg 1344w"
+          sizes="100vw"
+          fetchPriority="high"
+          loading="eager"
           alt="Canteiro de obras"
           className="w-full h-full object-cover"
         />
