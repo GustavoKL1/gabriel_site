@@ -35,6 +35,8 @@ import { validateEnv } from './utils/validateEnv.js';
 
 // Import routes
 import contactRoutes from './routes/contact.js';
+import adminRoutes from './routes/admin.js';
+import { projectService } from './services/projectService.js';
 
 // ============================================
 // INITIALIZE EXPRESS APP
@@ -59,6 +61,10 @@ const PORT = process.env.PORT || 3000;
  * 5. Request logging
  * 6. Route handlers
  */
+
+// Configure express to trust proxy (e.g., Vercel, Cloudflare, Nginx)
+// This ensures that req.ip contains the correct client IP address instead of the proxy IP.
+app.set('trust proxy', 1);
 
 // 1. Apply security middleware (Helmet, HPP, general rate limiting)
 applySecurityMiddleware(app);
@@ -96,6 +102,9 @@ app.get('/api/health', (req, res) => {
 // Contact form routes
 app.use('/api/contact', contactRoutes);
 
+// Admin routes (Create/Delete projects)
+app.use('/api/admin/projects', adminRoutes);
+
 // ============================================
 // ERROR HANDLING
 // ============================================
@@ -126,6 +135,9 @@ app.use((err, req, res, next) => {
 // ============================================
 // SERVER STARTUP
 // ============================================
+
+// Initialize high-performance data cache
+projectService.init().catch(console.error);
 
 const server = app.listen(PORT, () => {
   console.log(`
