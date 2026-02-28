@@ -74,11 +74,17 @@ const sanitizeFormat = winston.format((info) => {
   return info;
 });
 
-// Create logs directory if it doesn't exist
-import fs from 'fs';
+import fs from 'fs/promises';
+
 const logsDir = path.join(__dirname, '../../logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
+
+// Create logs directory asynchronously if it doesn't exist to prevent blocking the event loop
+try {
+  await fs.mkdir(logsDir, { recursive: true });
+} catch (err) {
+  if (err.code !== 'EEXIST') {
+    console.error('Failed to create logs directory:', err);
+  }
 }
 
 /**
