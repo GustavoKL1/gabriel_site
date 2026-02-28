@@ -15,39 +15,30 @@ export default function Hero() {
   }, []);
 
   useEffect(() => {
-    let rect = heroRef.current?.getBoundingClientRect() ?? null;
-
-    const updateRect = () => {
-      if (heroRef.current) {
-        rect = heroRef.current.getBoundingClientRect();
-      }
-    };
-
-    const resizeObserver = new ResizeObserver(updateRect);
-
-    if (heroRef.current) {
-      resizeObserver.observe(heroRef.current);
-    }
-
-    // Also observe scroll to update the rect relative to viewport
-    window.addEventListener('scroll', updateRect, { passive: true });
-    window.addEventListener('resize', updateRect, { passive: true });
+    let requestRef: number | null = null;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (rect) {
-        setMousePos({
-          x: (e.clientX - rect.left) / rect.width,
-          y: (e.clientY - rect.top) / rect.height,
-        });
+      if (requestRef !== null) {
+        cancelAnimationFrame(requestRef);
       }
+
+      requestRef = requestAnimationFrame(() => {
+        if (heroRef.current) {
+          const rect = heroRef.current.getBoundingClientRect();
+          setMousePos({
+            x: (e.clientX - rect.left) / rect.width,
+            y: (e.clientY - rect.top) / rect.height,
+          });
+        }
+      });
     };
 
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('mousemove', handleMouseMove);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('scroll', updateRect);
-      window.removeEventListener('resize', updateRect);
-      resizeObserver.disconnect();
+      if (requestRef !== null) {
+        cancelAnimationFrame(requestRef);
+      }
     };
   }, []);
 
