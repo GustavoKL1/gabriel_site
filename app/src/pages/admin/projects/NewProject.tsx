@@ -1,16 +1,24 @@
 import { useState } from 'react';
 import { ArrowLeft, Save, AlertCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export default function NewProject() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     imageUrl: '',
+    category: 'civil',
+    location: '',
+    year: '',
     status: 'draft',
     sketchfabUrl: '',
   });
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -19,11 +27,14 @@ export default function NewProject() {
     const newErrors: Record<string, string> = {};
     if (!formData.title.trim()) newErrors.title = 'Title is required';
     if (!formData.description.trim()) newErrors.description = 'Description is required';
+    if (!formData.category.trim()) newErrors.category = 'Category is required';
+    if (!formData.location.trim()) newErrors.location = 'Location is required';
+    if (!formData.year.trim()) newErrors.year = 'Year is required';
 
-    // Check if the image url is a valid URL and not empty
-    if (!formData.imageUrl.trim()) {
-      newErrors.imageUrl = 'Image URL is required';
-    } else {
+    // Check if either an image file or an image URL is provided
+    if (!imageFile && !formData.imageUrl.trim()) {
+      newErrors.imageUrl = 'Either an Image File or Image URL is required';
+    } else if (!imageFile && formData.imageUrl.trim()) {
       try {
         new URL(formData.imageUrl);
       } catch {
@@ -58,13 +69,24 @@ export default function NewProject() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setImageFile(e.target.files[0]);
+      if (errors.imageUrl) {
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.imageUrl;
+          return newErrors;
+        });
+      }
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
-      // Announce to screen readers that validation failed (in a real app, might use an aria-live region)
       const errorCount = Object.keys(errors).length;
       if (errorCount > 0) {
-          // Focus the first error field
           const firstErrorField = document.getElementById(Object.keys(errors)[0]);
           firstErrorField?.focus();
       }
@@ -73,11 +95,52 @@ export default function NewProject() {
 
     setIsSubmitting(true);
 
-    // Simulate submission
-    setTimeout(() => {
+    try {
+      const form = new FormData();
+      form.append('title', formData.title);
+      form.append('description', formData.description);
+      form.append('category', formData.category);
+      form.append('location', formData.location);
+      form.append('year', formData.year);
+
+      if (imageFile) {
+        form.append('imageFile', imageFile);
+      } else if (formData.imageUrl) {
+        form.append('imageUrl', formData.imageUrl);
+      }
+
+      if (formData.sketchfabUrl) {
+        // Extract sketchfab ID from URL if provided or just pass as sketchfabTitle/sketchfabId depending on backend expectations
+        // Assuming sketchfabUrl is the full embed link and we can just pass sketchfabId/sketchfabTitle if needed
+        form.append('sketchfabId', formData.sketchfabUrl);
+        form.append('sketchfabTitle', formData.title);
+      }
+
+      const token = import.meta.env.VITE_ADMIN_TOKEN || 'admin_secret_token'; // Or however auth is handled
+
+      const response = await fetch(`${API_URL}/admin/projects`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: form
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success('Project created successfully!');
+        navigate('/admin');
+      } else {
+        throw new Error(data.message || 'Failed to create project');
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error(error instanceof Error ? error.message : 'Error creating project');
+      setErrors(prev => ({ ...prev, submit: 'Failed to create project' }));
+    } finally {
       setIsSubmitting(false);
-      // In a real app we'd redirect or show a success message via sonner/toast here
-    }, 1000);
+    }
   };
 
   return (
@@ -144,6 +207,93 @@ export default function NewProject() {
             )}
           </div>
 
+          {/* Category Field */}
+          <div className="space-y-2">
+            <label htmlFor="category" className="block text-sm font-semibold text-slate-900">
+              Category <span className="text-red-500" aria-hidden="true">*</span>
+              <span className="sr-only"> (required)</span>
+            </label>
+            <input
+              type="text"
+              id="category"
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              placeholder="e.g. civil"
+              className={`w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                errors.category
+                  ? 'border-red-500 focus-visible:ring-red-500 bg-red-50'
+                  : 'border-slate-300 hover:border-slate-400'
+              }`}
+              aria-invalid={!!errors.category}
+              required
+            />
+            {errors.category && (
+              <p className="flex items-center gap-1.5 text-sm font-medium text-red-600" role="alert">
+                <AlertCircle className="w-4 h-4" aria-hidden="true" />
+                {errors.category}
+              </p>
+            )}
+          </div>
+
+          {/* Location Field */}
+          <div className="space-y-2">
+            <label htmlFor="location" className="block text-sm font-semibold text-slate-900">
+              Location <span className="text-red-500" aria-hidden="true">*</span>
+              <span className="sr-only"> (required)</span>
+            </label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              placeholder="e.g. São Paulo, SP"
+              className={`w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                errors.location
+                  ? 'border-red-500 focus-visible:ring-red-500 bg-red-50'
+                  : 'border-slate-300 hover:border-slate-400'
+              }`}
+              aria-invalid={!!errors.location}
+              required
+            />
+            {errors.location && (
+              <p className="flex items-center gap-1.5 text-sm font-medium text-red-600" role="alert">
+                <AlertCircle className="w-4 h-4" aria-hidden="true" />
+                {errors.location}
+              </p>
+            )}
+          </div>
+
+          {/* Year Field */}
+          <div className="space-y-2">
+            <label htmlFor="year" className="block text-sm font-semibold text-slate-900">
+              Year <span className="text-red-500" aria-hidden="true">*</span>
+              <span className="sr-only"> (required)</span>
+            </label>
+            <input
+              type="text"
+              id="year"
+              name="year"
+              value={formData.year}
+              onChange={handleChange}
+              placeholder="e.g. 2024"
+              className={`w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                errors.year
+                  ? 'border-red-500 focus-visible:ring-red-500 bg-red-50'
+                  : 'border-slate-300 hover:border-slate-400'
+              }`}
+              aria-invalid={!!errors.year}
+              required
+            />
+            {errors.year && (
+              <p className="flex items-center gap-1.5 text-sm font-medium text-red-600" role="alert">
+                <AlertCircle className="w-4 h-4" aria-hidden="true" />
+                {errors.year}
+              </p>
+            )}
+          </div>
+
           {/* Description Field */}
           <div className="space-y-2">
             <label htmlFor="description" className="block text-sm font-semibold text-slate-900">
@@ -174,36 +324,46 @@ export default function NewProject() {
             )}
           </div>
 
-          {/* Image URL Field */}
+          {/* Image Field */}
           <div className="space-y-2">
-            <label htmlFor="imageUrl" className="block text-sm font-semibold text-slate-900">
-              Cover Image URL <span className="text-red-500" aria-hidden="true">*</span>
-              <span className="sr-only"> (required)</span>
+            <label className="block text-sm font-semibold text-slate-900">
+              Cover Image <span className="text-red-500" aria-hidden="true">*</span>
             </label>
-            <input
-              type="url"
-              id="imageUrl"
-              name="imageUrl"
-              value={formData.imageUrl}
-              onChange={handleChange}
-              placeholder="https://example.com/image.jpg"
-              className={`w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                errors.imageUrl
-                  ? 'border-red-500 focus-visible:ring-red-500 bg-red-50'
-                  : 'border-slate-300 hover:border-slate-400'
-              }`}
-              aria-invalid={!!errors.imageUrl}
-              aria-describedby={errors.imageUrl ? 'imageUrl-error' : 'imageUrl-hint'}
-              required
-            />
-            {errors.imageUrl ? (
-              <p id="imageUrl-error" className="flex items-center gap-1.5 text-sm font-medium text-red-600" role="alert">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="imageFile" className="block text-xs text-slate-500 mb-1">Upload File</label>
+                <input
+                  type="file"
+                  id="imageFile"
+                  name="imageFile"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleImageFileChange}
+                  className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+              </div>
+              <div>
+                <label htmlFor="imageUrl" className="block text-xs text-slate-500 mb-1">Or Provide Image URL</label>
+                <input
+                  type="url"
+                  id="imageUrl"
+                  name="imageUrl"
+                  value={formData.imageUrl}
+                  onChange={handleChange}
+                  placeholder="https://example.com/image.jpg"
+                  className={`w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                    errors.imageUrl && !imageFile
+                      ? 'border-red-500 focus-visible:ring-red-500 bg-red-50'
+                      : 'border-slate-300 hover:border-slate-400'
+                  }`}
+                  aria-invalid={!!errors.imageUrl && !imageFile}
+                  disabled={!!imageFile}
+                />
+              </div>
+            </div>
+            {errors.imageUrl && !imageFile && (
+              <p className="flex items-center gap-1.5 text-sm font-medium text-red-600" role="alert">
                 <AlertCircle className="w-4 h-4" aria-hidden="true" />
                 {errors.imageUrl}
-              </p>
-            ) : (
-              <p id="imageUrl-hint" className="text-sm text-slate-500">
-                Provide a direct link to a high-quality cover image.
               </p>
             )}
           </div>

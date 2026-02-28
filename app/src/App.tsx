@@ -9,6 +9,8 @@ import Footer from './sections/Footer';
 import AdminLayout from './pages/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import NewProject from './pages/admin/projects/NewProject';
+import ArticlesList from './pages/admin/articles/ArticlesList';
+import NewArticle from './pages/admin/articles/NewArticle';
 import { Toaster } from './components/ui/sonner';
 
 function LandingPage() {
@@ -37,6 +39,8 @@ function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="projects/new" element={<NewProject />} />
+          <Route path="articles" element={<ArticlesList />} />
+          <Route path="articles/new" element={<NewArticle />} />
         </Route>
 
         {/* Fallback */}

@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Home, FolderPlus } from 'lucide-react';
+import { Home, FolderPlus, FileText, FilePlus } from 'lucide-react';
 
 export default function AdminLayout() {
   const location = useLocation();
@@ -42,6 +42,41 @@ export default function AdminLayout() {
             >
               <FolderPlus className="w-4 h-4" aria-hidden="true" />
               New Project
+            </Link>
+          </li>
+        </ul>
+
+        <div className="mt-8 mb-4 px-2">
+          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Blog Content</h2>
+        </div>
+
+        <ul className="space-y-1">
+          <li>
+            <Link
+              to="/admin/articles"
+              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                location.pathname === '/admin/articles'
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'
+              }`}
+              aria-current={location.pathname === '/admin/articles' ? 'page' : undefined}
+            >
+              <FileText className="w-4 h-4" aria-hidden="true" />
+              Articles
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/admin/articles/new"
+              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                location.pathname === '/admin/articles/new'
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'
+              }`}
+              aria-current={location.pathname === '/admin/articles/new' ? 'page' : undefined}
+            >
+              <FilePlus className="w-4 h-4" aria-hidden="true" />
+              New Article
             </Link>
           </li>
         </ul>

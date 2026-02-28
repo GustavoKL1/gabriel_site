@@ -36,7 +36,9 @@ import { validateEnv } from './utils/validateEnv.js';
 // Import routes
 import contactRoutes from './routes/contact.js';
 import adminRoutes from './routes/admin.js';
+import articleRoutes from './routes/articles.js';
 import { projectService } from './services/projectService.js';
+import { articleService } from './services/articleService.js';
 
 // ============================================
 // INITIALIZE EXPRESS APP
@@ -104,6 +106,7 @@ app.use('/api/contact', contactRoutes);
 
 // Admin routes (Create/Delete projects)
 app.use('/api/admin/projects', adminRoutes);
+app.use('/api/admin/articles', articleRoutes);
 
 // ============================================
 // ERROR HANDLING
@@ -138,6 +141,7 @@ app.use((err, req, res, next) => {
 
 // Initialize high-performance data cache
 projectService.init().catch(console.error);
+articleService.init().catch(console.error);
 
 const server = app.listen(PORT, () => {
   console.log(`

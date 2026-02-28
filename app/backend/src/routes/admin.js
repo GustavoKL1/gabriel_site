@@ -124,7 +124,7 @@ router.delete('/:id', async (req, res) => {
 
     // ⚡ Bolt: Asynchronously remove the associated image file from disk (non-blocking)
     if (deletedProject.image && deletedProject.image.startsWith('/images/')) {
-      const filename = deletedProject.image.replace('/images/', '');
+      const filename = path.basename(deletedProject.image);
       const filepath = path.join(UPLOADS_DIR, filename);
 
       // Fire-and-forget unlink to not block the request response
