@@ -162,11 +162,6 @@ export default function Projects() {
     return () => observer.disconnect();
   }, []);
 
-  // Reset to page 1 when filter changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [activeFilter]);
-
   const handleView3D = (project: Project) => {
     setSelectedProject(project);
     setIsDialogOpen(true);
@@ -248,7 +243,10 @@ export default function Projects() {
             {filters.map((filter) => (
               <button
                 key={filter.key}
-                onClick={() => setActiveFilter(filter.key)}
+                onClick={() => {
+                  setActiveFilter(filter.key);
+                  setCurrentPage(1);
+                }}
                 className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${
                   activeFilter === filter.key
                     ? 'bg-engine-blue text-white shadow-glow'
