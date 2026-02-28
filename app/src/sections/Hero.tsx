@@ -9,7 +9,9 @@ export default function Hero() {
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setIsLoaded(true);
+    // Adding a small delay to ensure the initial render happens before triggering the animation state
+    const timer = setTimeout(() => setIsLoaded(true), 50);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -192,9 +194,10 @@ export default function Hero() {
         <button
           onClick={scrollToAbout}
           className="flex flex-col items-center text-white/60 hover:text-white transition-colors"
+          aria-label="Rolar para a seção Sobre Nós"
         >
-          <span className="text-xs mb-2 tracking-wider">ROLAR</span>
-          <ChevronDown className="w-5 h-5 animate-bounce" />
+          <span className="text-xs mb-2 tracking-wider" aria-hidden="true">ROLAR</span>
+          <ChevronDown className="w-5 h-5 animate-bounce" aria-hidden="true" />
         </button>
       </div>
 
