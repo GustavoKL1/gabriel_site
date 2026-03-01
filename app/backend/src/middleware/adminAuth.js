@@ -23,9 +23,13 @@ export const adminAuth = (req, res, next) => {
   const clientIp = req.ip || req.connection.remoteAddress;
 
   // 1. Check IP Whitelist
+  // Allow localhost IPs automatically for local development
+  const isLocalhost = clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === '::ffff:127.0.0.1';
+
   // Skip IP check if the whitelist is explicitly configured to allow all (e.g. '*') for local dev,
-  // but by default enforce strict checking.
-  if (allowedIpsStr !== '*' && (!allowedIpsStr || !allowedIps.includes(clientIp))) {
+  // or if the request comes from localhost.
+  // Otherwise, enforce strict checking.
+  if (!isLocalhost && allowedIpsStr !== '*' && (!allowedIpsStr || !allowedIps.includes(clientIp))) {
     logSecurityEvent('admin_ip_blocked', { ip: clientIp, path: req.path });
     return res.status(403).json({ success: false, message: 'Forbidden: IP not authorized' });
   }
