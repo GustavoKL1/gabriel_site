@@ -49,7 +49,7 @@ export const corsOptions = {
   credentials: true,
   
   // Allowed HTTP methods
-  methods: ['GET', 'POST', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   
   // Allowed headers
   allowedHeaders: [

@@ -91,6 +91,55 @@ router.post('/', upload.single('imageFile'), async (req, res) => {
   }
 });
 
+router.put('/:id', upload.single('imageFile'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, content, author, category, date, imageUrl } = req.body;
+
+    let image = undefined;
+
+    if (req.file) {
+      image = `/images/articles/${req.file.filename}`;
+    } else if (imageUrl) {
+      image = imageUrl;
+    }
+
+    const updateData = {
+      ...(title && { title }),
+      ...(content && { content }),
+      ...(author && { author }),
+      ...(category && { category }),
+      ...(date && { date }),
+      ...(image && { imageUrl: image })
+    };
+
+    const result = await articleService.updateArticle(id, updateData);
+
+    if (!result) {
+      return res.status(404).json({ success: false, message: 'Article not found' });
+    }
+
+    const { updatedArticle, oldArticle } = result;
+
+    if (image && oldArticle.imageUrl && oldArticle.imageUrl.startsWith('/images/articles/') && oldArticle.imageUrl !== image) {
+      const filename = path.basename(oldArticle.imageUrl);
+      const filepath = path.join(UPLOADS_DIR, filename);
+
+      fs.promises.unlink(filepath).catch((err) => {
+        console.warn(`Failed to delete old image file ${filepath}:`, err.message);
+      });
+    }
+
+    logSecurityEvent('admin_article_updated', { ip: req.ip, articleId: id, title: updatedArticle.title });
+
+    res.json({ success: true, message: 'Article updated successfully', data: updatedArticle });
+
+  } catch (error) {
+    console.error('Update article error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Error updating article' });
+  }
+});
+
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;

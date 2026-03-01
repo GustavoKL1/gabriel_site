@@ -1,14 +1,16 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, FolderPlus, Trash2 } from 'lucide-react';
+import { ArrowRight, FolderPlus, Trash2, Edit2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Project } from '../../types/project';
 import { toast } from 'sonner';
+import EditProjectModal from './projects/EditProjectModal';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export default function AdminDashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
 
   useEffect(() => {
     fetchProjects();
@@ -145,7 +147,15 @@ export default function AdminDashboard() {
                     <td className="py-3 px-4 font-medium text-slate-800">{project.title}</td>
                     <td className="py-3 px-4 text-slate-600 capitalize">{project.category}</td>
                     <td className="py-3 px-4 text-slate-600">{project.year}</td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-3 px-4 text-right flex justify-end gap-2">
+                      <button
+                        onClick={() => setEditingProject(project)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                        aria-label={`Edit ${project.title}`}
+                        title="Edit Project"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => handleDeleteProject(project.id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
@@ -162,6 +172,13 @@ export default function AdminDashboard() {
           </div>
         )}
       </section>
+
+      <EditProjectModal
+        isOpen={!!editingProject}
+        onClose={() => setEditingProject(null)}
+        project={editingProject}
+        onSuccess={fetchProjects}
+      />
     </div>
   );
 }

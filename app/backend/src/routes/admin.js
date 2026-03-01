@@ -110,6 +110,62 @@ router.post('/', upload.single('imageFile'), async (req, res) => {
 
 /**
  * ⚡ Bolt Optimization:
+ * Update project. In-memory update + fire-and-forget file write.
+ */
+router.put('/:id', upload.single('imageFile'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, category, location, year, description, sketchfabId, sketchfabTitle, imageUrl } = req.body;
+
+    let image = undefined;
+
+    if (req.file) {
+      image = `/images/${req.file.filename}`;
+    } else if (imageUrl) {
+      image = imageUrl;
+    }
+
+    const updateData = {
+      ...(title && { title }),
+      ...(category && { category }),
+      ...(location && { location }),
+      ...(year && { year }),
+      ...(description && { description }),
+      ...(image && { image }),
+      ...(sketchfabId !== undefined && { sketchfabId }),
+      ...(sketchfabTitle !== undefined && { sketchfabTitle })
+    };
+
+    const result = await projectService.updateProject(id, updateData);
+
+    if (!result) {
+      return res.status(404).json({ success: false, message: 'Project not found' });
+    }
+
+    const { updatedProject, oldProject } = result;
+
+    // Asynchronously remove the old image if it was replaced
+    if (image && oldProject.image && oldProject.image.startsWith('/images/') && oldProject.image !== image) {
+      const filename = path.basename(oldProject.image);
+      const filepath = path.join(UPLOADS_DIR, filename);
+
+      fs.promises.unlink(filepath).catch((err) => {
+        console.warn(`Failed to delete old image file ${filepath}:`, err.message);
+      });
+    }
+
+    logSecurityEvent('admin_project_updated', { ip: req.ip, projectId: id, title: updatedProject.title });
+
+    res.json({ success: true, message: 'Project updated successfully', data: updatedProject });
+
+  } catch (error) {
+    console.error('Update project error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Error updating project' });
+  }
+});
+
+/**
+ * ⚡ Bolt Optimization:
  * Delete project. Fast array mutation and non-blocking file deletion.
  */
 router.delete('/:id', async (req, res) => {

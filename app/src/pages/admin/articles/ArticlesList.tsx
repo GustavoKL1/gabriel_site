@@ -1,14 +1,16 @@
 import { Link } from 'react-router-dom';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Edit2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Article } from '../../../types/article';
 import { toast } from 'sonner';
+import EditArticleModal from './EditArticleModal';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export default function ArticlesList() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
 
   useEffect(() => {
     fetchArticles();
@@ -117,7 +119,15 @@ export default function ArticlesList() {
                     <td className="py-3 px-4 text-slate-600 capitalize">{article.category}</td>
                     <td className="py-3 px-4 text-slate-600">{article.author}</td>
                     <td className="py-3 px-4 text-slate-600">{new Date(article.date).toLocaleDateString()}</td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-3 px-4 text-right flex justify-end gap-2">
+                      <button
+                        onClick={() => setEditingArticle(article)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                        aria-label={`Edit ${article.title}`}
+                        title="Edit Article"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => handleDeleteArticle(article.id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
@@ -134,6 +144,13 @@ export default function ArticlesList() {
           </div>
         )}
       </section>
+
+      <EditArticleModal
+        isOpen={!!editingArticle}
+        onClose={() => setEditingArticle(null)}
+        article={editingArticle}
+        onSuccess={fetchArticles}
+      />
     </div>
   );
 }
