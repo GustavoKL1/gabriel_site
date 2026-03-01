@@ -22,14 +22,16 @@ export const adminAuth = (req, res, next) => {
   // When 'trust proxy' is set, req.ip will contain the true client IP provided by proxies (like Vercel).
   const clientIp = req.ip || req.connection.remoteAddress;
 
-  // 1. Check IP Whitelist
-  // Allow localhost IPs automatically for local development
   const isLocalhost = clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === '::ffff:127.0.0.1';
+  const isLocalDev = process.env.NODE_ENV !== 'production';
 
+  // 1. Check IP Whitelist
+  // Allow localhost IPs automatically for local development (only outside of production)
   // Skip IP check if the whitelist is explicitly configured to allow all (e.g. '*') for local dev,
-  // or if the request comes from localhost.
-  // Otherwise, enforce strict checking.
-  if (!isLocalhost && allowedIpsStr !== '*' && (!allowedIpsStr || !allowedIps.includes(clientIp))) {
+  // but by default enforce strict checking.
+  const bypassIpCheck = isLocalDev && isLocalhost;
+
+  if (!bypassIpCheck && allowedIpsStr !== '*' && (!allowedIpsStr || !allowedIps.includes(clientIp))) {
     logSecurityEvent('admin_ip_blocked', { ip: clientIp, path: req.path });
     return res.status(403).json({ success: false, message: 'Forbidden: IP not authorized' });
   }
@@ -43,7 +45,9 @@ export const adminAuth = (req, res, next) => {
   }
 
   const token = authHeader.split(' ')[1];
-  const expectedToken = process.env.ADMIN_TOKEN;
+
+  // Use fallback token ONLY in local development
+  const expectedToken = isLocalDev ? (process.env.ADMIN_TOKEN || 'admin_secret_token') : process.env.ADMIN_TOKEN;
 
   if (!expectedToken || token !== expectedToken) {
     logSecurityEvent('admin_auth_failed', { ip: clientIp, path: req.path });
