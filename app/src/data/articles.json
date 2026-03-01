@@ -1,11 +1,11 @@
 [
   {
     "id": 1,
-    "title": "Test Article Title",
-    "content": "This is a test article content.",
-    "author": "Jane Doe",
+    "title": "Test Article 1",
+    "content": "Test content",
+    "author": "Admin",
     "category": "Technology",
-    "date": "2026-02-28",
+    "date": "2024-03-01T00:00:00.000Z",
     "imageUrl": "https://placehold.co/600x400"
   }
 ]

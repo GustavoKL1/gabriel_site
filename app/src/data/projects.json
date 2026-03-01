@@ -1,33 +1,11 @@
 [
   {
     "id": 1,
-    "title": "Torre Skyline",
+    "title": "Test Project 1",
     "category": "civil",
-    "location": "Centro da Metrópole",
-    "year": "2023",
-    "image": "/images/project-skyline.jpg",
-    "description": "Um edifício comercial de 45 andares com design estrutural inovador e práticas sustentáveis de construção.",
-    "sketchfabId": "9bdbc1a76f4e43e893978e67678d6efd",
-    "sketchfabTitle": "Modern Skyscraper"
-  },
-  {
-    "id": 3,
-    "title": "Ponte do Porto",
-    "category": "civil",
-    "location": "Distrito Costeiro",
-    "year": "2022",
-    "image": "/images/project-bridge.jpg",
-    "description": "Ponte suspensa emblemática conectando os distritos do porto com um vão de 1,2 quilômetros.",
-    "sketchfabId": "88f76c4bf89a4f25a9e31556cd80e1ae",
-    "sketchfabTitle": "Suspension Bridge"
-  },
-  {
-    "id": 6,
-    "title": "Interchange de Rodovia",
-    "category": "civil",
-    "location": "Conector Urbano",
-    "year": "2021",
-    "image": "/images/project-highway.jpg",
-    "description": "Complexo intercâmbio de rodovia em múltiplos níveis melhorando o fluxo de tráfego e reduzindo congestionamentos."
+    "location": "São Paulo, SP",
+    "year": "2024",
+    "image": "https://placehold.co/600x400",
+    "description": "Test description"
   }
 ]

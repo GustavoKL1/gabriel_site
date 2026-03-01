@@ -72,6 +72,31 @@ class ProjectService {
     return newProject;
   }
 
+  // Update project in memory instantly, then fire-and-forget save to disk
+  async updateProject(id, updateData) {
+    const projectId = Number(id);
+    const index = this.projects.findIndex((p) => p.id === projectId);
+
+    if (index === -1) {
+      return null;
+    }
+
+    const oldProject = this.projects[index];
+
+    const updatedProject = {
+      ...oldProject,
+      ...updateData
+    };
+
+    // Update in-memory cache instantly (O(1))
+    this.projects[index] = updatedProject;
+
+    // Save asynchronously to disk (non-blocking)
+    await this._save();
+
+    return { updatedProject, oldProject };
+  }
+
   // Delete project from memory instantly, then fire-and-forget save to disk
   async deleteProject(id) {
     const projectId = Number(id);

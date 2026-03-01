@@ -72,6 +72,31 @@ class ArticleService {
     return newArticle;
   }
 
+  // Update article in memory instantly, then fire-and-forget save to disk
+  async updateArticle(id, updateData) {
+    const articleId = Number(id);
+    const index = this.articles.findIndex((a) => a.id === articleId);
+
+    if (index === -1) {
+      return null;
+    }
+
+    const oldArticle = this.articles[index];
+
+    const updatedArticle = {
+      ...oldArticle,
+      ...updateData
+    };
+
+    // Update in-memory cache instantly (O(1))
+    this.articles[index] = updatedArticle;
+
+    // Save asynchronously to disk (non-blocking)
+    await this._save();
+
+    return { updatedArticle, oldArticle };
+  }
+
   // Delete article from memory instantly, then fire-and-forget save to disk
   async deleteArticle(id) {
     const articleId = Number(id);
