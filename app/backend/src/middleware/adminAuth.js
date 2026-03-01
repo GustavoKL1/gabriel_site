@@ -57,10 +57,3 @@ export const adminAuth = (req, res, next) => {
   // All checks passed
   next();
 };
-
-    return res.status(401).json({ success: false, message: 'Unauthorized: Invalid token' });
-  }
-
-  // All checks passed
-  next();
-};
