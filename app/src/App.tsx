@@ -12,6 +12,7 @@ import NewProject from './pages/admin/projects/NewProject';
 import ArticlesList from './pages/admin/articles/ArticlesList';
 import NewArticle from './pages/admin/articles/NewArticle';
 import ProjectsPage from './pages/ProjectsPage';
+import ProjectCategoryPage from './pages/ProjectCategoryPage';
 import ArticlesPage from './pages/ArticlesPage';
 import ArticlesSection from './sections/Articles';
 import { Toaster } from './components/ui/sonner';
@@ -41,6 +42,7 @@ function App() {
 
         {/* Public Pages */}
         <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/projects/:category" element={<ProjectCategoryPage />} />
         <Route path="/articles" element={<ArticlesPage />} />
 
         {/* Admin Routes */}

@@ -1,6 +1,13 @@
 import { useState } from 'react';
-import { MapPin, Calendar, ExternalLink, Box } from 'lucide-react';
+import { MapPin, Calendar, Box, Info } from 'lucide-react';
 import type { Project } from '@/types/project';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 interface ProjectCardProps {
   project: Project;
@@ -11,6 +18,7 @@ interface ProjectCardProps {
 
 export default function ProjectCard({ project, index, isVisible, onView3D }: ProjectCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isDescOpen, setIsDescOpen] = useState(false);
 
   return (
     <div
@@ -98,19 +106,53 @@ export default function ProjectCard({ project, index, isVisible, onView3D }: Pro
             {project.sketchfabId && (
               <button
                 onClick={() => onView3D(project)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm rounded-lg transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-purple-400 outline-none"
+                aria-label={`Ver modelo 3D do projeto ${project.title}`}
               >
                 <Box className="w-4 h-4" />
                 Ver em 3D
               </button>
             )}
-            <button className="inline-flex items-center gap-2 text-engine-orange font-medium text-sm hover:underline">
+            <button
+              onClick={() => setIsDescOpen(true)}
+              className="inline-flex items-center gap-2 text-engine-orange font-medium text-sm hover:underline focus-visible:ring-2 focus-visible:ring-engine-orange outline-none rounded-sm px-1"
+              aria-label={`Ver descrição do projeto ${project.title}`}
+            >
               Ver Projeto
-              <ExternalLink className="w-4 h-4" />
+              <Info className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
+
+      {/* Description Dialog */}
+      <Dialog open={isDescOpen} onOpenChange={setIsDescOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-display font-bold text-gray-900">
+              {project.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
+              <span className="flex items-center gap-1">
+                <MapPin className="w-4 h-4" />
+                {project.location}
+              </span>
+              <span className="flex items-center gap-1">
+                <Calendar className="w-4 h-4" />
+                {project.year}
+              </span>
+              <span className="bg-engine-blue/10 text-engine-blue px-2 py-0.5 rounded-full font-medium text-xs uppercase">
+                {project.category}
+              </span>
+            </div>
+            <DialogDescription className="text-gray-700 text-base leading-relaxed">
+              {project.description}
+            </DialogDescription>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
