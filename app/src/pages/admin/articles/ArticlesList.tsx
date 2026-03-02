@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, Edit2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Article } from '../../../types/article';
 import { toast } from 'sonner';
@@ -36,6 +36,47 @@ export default function ArticlesList() {
       toast.error('Error fetching articles');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleToggleStar = async (article: Article) => {
+    const isCurrentlyStarred = article.starred;
+    const newStarredStatus = !isCurrentlyStarred;
+
+    if (newStarredStatus) {
+      const starredCount = articles.filter(a => a.starred).length;
+      if (starredCount >= 3) {
+        toast.error('You can only star up to 3 articles at a time.');
+        return;
+      }
+    }
+
+    try {
+      const token = import.meta.env.VITE_ADMIN_TOKEN || 'admin_secret_token';
+      const formData = new FormData();
+      formData.append('starred', String(newStarredStatus));
+
+      const response = await fetch(`${API_URL}/admin/articles/${article.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success(newStarredStatus ? 'Article starred' : 'Article unstarred');
+        setArticles(articles.map(a =>
+          a.id === article.id ? { ...a, starred: newStarredStatus } : a
+        ));
+      } else {
+        toast.error(data.message || 'Failed to update article star status');
+      }
+    } catch (error) {
+      console.error('Error updating article star status:', error);
+      toast.error('Error updating article star status');
     }
   };
 
@@ -120,6 +161,18 @@ export default function ArticlesList() {
                     <td className="py-3 px-4 text-slate-600">{article.author}</td>
                     <td className="py-3 px-4 text-slate-600">{new Date(article.date).toLocaleDateString()}</td>
                     <td className="py-3 px-4 text-right flex justify-end gap-2">
+                      <button
+                        onClick={() => handleToggleStar(article)}
+                        className={`p-2 rounded-md transition-colors ${
+                          article.starred
+                            ? 'text-yellow-500 hover:bg-yellow-50'
+                            : 'text-slate-400 hover:text-yellow-500 hover:bg-yellow-50'
+                        }`}
+                        aria-label={`${article.starred ? 'Unstar' : 'Star'} ${article.title}`}
+                        title={`${article.starred ? 'Unstar' : 'Star'} Article`}
+                      >
+                        <Star className="w-4 h-4" fill={article.starred ? 'currentColor' : 'none'} />
+                      </button>
                       <button
                         onClick={() => setEditingArticle(article)}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"

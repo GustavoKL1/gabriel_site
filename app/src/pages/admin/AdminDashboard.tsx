@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, FolderPlus, Trash2, Edit2 } from 'lucide-react';
+import { ArrowRight, FolderPlus, Trash2, Edit2, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Project } from '../../types/project';
 import { toast } from 'sonner';
@@ -36,6 +36,49 @@ export default function AdminDashboard() {
       toast.error('Error fetching projects');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleToggleStar = async (project: Project) => {
+    const isCurrentlyStarred = project.starred;
+    const newStarredStatus = !isCurrentlyStarred;
+
+    if (newStarredStatus) {
+      const starredCount = projects.filter(p => p.starred).length;
+      if (starredCount >= 3) {
+        toast.error('You can only star up to 3 projects at a time.');
+        return;
+      }
+    }
+
+    try {
+      const token = import.meta.env.VITE_ADMIN_TOKEN || 'admin_secret_token';
+      const formData = new FormData();
+      formData.append('starred', String(newStarredStatus));
+
+      // We don't want to overwrite the image with empty file data
+      // so we use the edit route but only send the fields we want to change
+      const response = await fetch(`${API_URL}/admin/projects/${project.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success(newStarredStatus ? 'Project starred' : 'Project unstarred');
+        setProjects(projects.map(p =>
+          p.id === project.id ? { ...p, starred: newStarredStatus } : p
+        ));
+      } else {
+        toast.error(data.message || 'Failed to update project star status');
+      }
+    } catch (error) {
+      console.error('Error updating project star status:', error);
+      toast.error('Error updating project star status');
     }
   };
 
@@ -148,6 +191,18 @@ export default function AdminDashboard() {
                     <td className="py-3 px-4 text-slate-600 capitalize">{project.category}</td>
                     <td className="py-3 px-4 text-slate-600">{project.year}</td>
                     <td className="py-3 px-4 text-right flex justify-end gap-2">
+                      <button
+                        onClick={() => handleToggleStar(project)}
+                        className={`p-2 rounded-md transition-colors ${
+                          project.starred
+                            ? 'text-yellow-500 hover:bg-yellow-50'
+                            : 'text-slate-400 hover:text-yellow-500 hover:bg-yellow-50'
+                        }`}
+                        aria-label={`${project.starred ? 'Unstar' : 'Star'} ${project.title}`}
+                        title={`${project.starred ? 'Unstar' : 'Star'} Project`}
+                      >
+                        <Star className="w-4 h-4" fill={project.starred ? 'currentColor' : 'none'} />
+                      </button>
                       <button
                         onClick={() => setEditingProject(project)}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"

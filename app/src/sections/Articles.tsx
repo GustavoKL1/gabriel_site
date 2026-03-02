@@ -29,15 +29,29 @@ export default function ArticlesSection() {
   }, []);
 
   const currentArticles = useMemo(() => {
-    // Show the 3 most recent articles
-    return [...articles]
+    // 1. Get starred articles
+    const starred = articles.filter(a => a.starred);
+
+    // 2. If we have 3 or more starred, just take the first 3
+    if (starred.length >= 3) {
+      return starred.slice(0, 3);
+    }
+
+    // 3. Otherwise, get remaining articles needed to reach 3
+    const needed = 3 - starred.length;
+
+    // 4. Get non-starred articles, sorted by newest
+    const remaining = articles
+      .filter(a => !a.starred)
       .sort((a, b) => {
         if (a.date && b.date) {
           return new Date(b.date).getTime() - new Date(a.date).getTime();
         }
         return b.id - a.id;
-      })
-      .slice(0, 3);
+      });
+
+    // 5. Combine and return
+    return [...starred, ...remaining.slice(0, needed)];
   }, [articles]);
 
   if (currentArticles.length === 0) {
