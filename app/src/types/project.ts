@@ -8,4 +8,6 @@ export interface Project {
   description: string;
   sketchfabId?: string;
   sketchfabTitle?: string;
+  starred?: boolean;
+  date?: string;
 }

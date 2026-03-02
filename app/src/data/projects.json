@@ -6,6 +6,8 @@
     "location": "São Paulo, SP",
     "year": "2024",
     "image": "https://placehold.co/600x400",
-    "description": "Test description"
+    "description": "Test description",
+    "starred": true,
+    "date": "2024-03-01T00:00:00.000Z"
   }
 ]

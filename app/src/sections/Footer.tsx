@@ -9,6 +9,7 @@ const footerLinks = {
   company: [
     { label: 'Sobre Nós', href: '#about' },
     { label: 'Nossos Projetos', href: '#projects' },
+    { label: 'Artigos', href: '#articles' },
     { label: 'Carreiras', href: '#' },
     { label: 'Notícias', href: '#' },
   ],
