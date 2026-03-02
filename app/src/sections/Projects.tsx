@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useMemo, lazy, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 import { ArrowRight, ExternalLink, Box, Loader2 } from 'lucide-react';
 import {
   Dialog,
@@ -7,14 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
 import projectsData from '@/data/projects.json';
 import type { Project } from '@/types/project';
 import ProjectCard from '@/components/ProjectCard';
@@ -24,13 +17,10 @@ const SketchfabEmbed = lazy(() => import('@/components/SketchfabEmbed'));
 
 export default function Projects() {
   const [isVisible, setIsVisible] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'civil'>('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const sectionRef = useRef<HTMLDivElement>(null);
   const projects: Project[] = projectsData as Project[];
-  const ITEMS_PER_PAGE = 6;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -55,23 +45,30 @@ export default function Projects() {
     setIsDialogOpen(true);
   };
 
-  const filteredProjects = useMemo(() => {
-    return activeFilter === 'all'
-      ? projects
-      : projects.filter((p) => p.category === activeFilter);
-  }, [activeFilter, projects]);
-
-  const totalPages = Math.ceil(filteredProjects.length / ITEMS_PER_PAGE);
-
   const currentProjects = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredProjects.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredProjects, currentPage]);
+    // 1. Get starred projects
+    const starred = projects.filter(p => p.starred);
 
-  const filters = [
-    { key: 'all', label: 'Todos os Projetos' },
-    { key: 'civil', label: 'Engenharia Civil' },
-  ] as const;
+    // 2. If we have 3 or more starred, just take the first 3
+    if (starred.length >= 3) {
+      return starred.slice(0, 3);
+    }
+
+    // 3. Otherwise, fill the remaining slots with the most recent ones
+    const needed = 3 - starred.length;
+
+    // Sort remaining by date (descending) or id if no date
+    const remaining = projects
+      .filter(p => !p.starred)
+      .sort((a, b) => {
+        if (a.date && b.date) {
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        }
+        return b.id - a.id;
+      });
+
+    return [...starred, ...remaining.slice(0, needed)];
+  }, [projects]);
 
   return (
     <section
@@ -121,29 +118,6 @@ export default function Projects() {
             </p>
           </div>
 
-          {/* Filter Buttons */}
-          <div
-            className={`flex flex-wrap gap-2 transition-all duration-700 delay-300 ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
-          >
-            {filters.map((filter) => (
-              <button
-                key={filter.key}
-                onClick={() => {
-                  setActiveFilter(filter.key);
-                  setCurrentPage(1);
-                }}
-                className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${
-                  activeFilter === filter.key
-                    ? 'bg-engine-blue text-white shadow-glow'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Projects Grid */}
@@ -159,54 +133,6 @@ export default function Projects() {
           ))}
         </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className={`transition-all duration-700 delay-400 ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-          }`}>
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage > 1) setCurrentPage(p => p - 1);
-                    }}
-                    className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
-                  />
-                </PaginationItem>
-
-                {Array.from({ length: totalPages }).map((_, i) => (
-                  <PaginationItem key={i}>
-                    <PaginationLink
-                      href="#"
-                      isActive={currentPage === i + 1}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCurrentPage(i + 1);
-                      }}
-                    >
-                      {i + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage < totalPages) setCurrentPage(p => p + 1);
-                    }}
-                    className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
-
         {/* View All CTA */}
         <div
           className={`text-center mt-16 transition-all duration-700 delay-500 ${
@@ -214,11 +140,14 @@ export default function Projects() {
           }`}
         >
           <Button
+            asChild
             size="lg"
             className="bg-engine-blue hover:bg-engine-blue-dark text-white px-8 py-6 text-base font-medium rounded-lg transition-all duration-300 hover:shadow-glow group"
           >
-            Ver Todos os Projetos
-            <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
+            <Link to="/projects">
+              Ver Todos os Projetos
+              <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
+            </Link>
           </Button>
         </div>
       </div>

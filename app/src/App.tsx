@@ -11,6 +11,9 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import NewProject from './pages/admin/projects/NewProject';
 import ArticlesList from './pages/admin/articles/ArticlesList';
 import NewArticle from './pages/admin/articles/NewArticle';
+import ProjectsPage from './pages/ProjectsPage';
+import ArticlesPage from './pages/ArticlesPage';
+import ArticlesSection from './sections/Articles';
 import { Toaster } from './components/ui/sonner';
 
 function LandingPage() {
@@ -22,6 +25,7 @@ function LandingPage() {
         <About />
         <Services />
         <Projects />
+        <ArticlesSection />
         <Contact />
       </main>
       <Footer />
@@ -34,6 +38,10 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+
+        {/* Public Pages */}
+        <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/articles" element={<ArticlesPage />} />
 
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminLayout />}>
