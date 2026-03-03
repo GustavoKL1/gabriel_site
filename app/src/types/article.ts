@@ -6,4 +6,5 @@ export interface Article {
   category: string;
   date: string;
   imageUrl: string;
+  starred?: boolean;
 }

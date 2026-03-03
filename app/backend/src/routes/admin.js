@@ -67,7 +67,7 @@ router.get('/', (req, res) => {
  */
 router.post('/', upload.single('imageFile'), async (req, res) => {
   try {
-    const { title, category, location, year, description, sketchfabId, sketchfabTitle, imageUrl } = req.body;
+    const { title, category, location, year, description, sketchfabId, sketchfabTitle, imageUrl, starred } = req.body;
 
     // Validate required fields fast
     if (!title || !category || !location || !year || !description) {
@@ -86,6 +86,16 @@ router.post('/', upload.single('imageFile'), async (req, res) => {
       return res.status(400).json({ success: false, message: 'Missing image file or imageUrl' });
     }
 
+    const isStarred = starred === 'true' || starred === true;
+
+    if (isStarred) {
+      const currentProjects = projectService.getProjects();
+      const starredCount = currentProjects.filter(p => p.starred).length;
+      if (starredCount >= 3) {
+        return res.status(400).json({ success: false, message: 'Maximum of 3 projects can be starred.' });
+      }
+    }
+
     const projectData = {
       title,
       category,
@@ -94,7 +104,8 @@ router.post('/', upload.single('imageFile'), async (req, res) => {
       image,
       description,
       sketchfabId,
-      sketchfabTitle
+      sketchfabTitle,
+      starred: isStarred
     };
 
     // Add to memory and async save to disk
@@ -115,7 +126,7 @@ router.post('/', upload.single('imageFile'), async (req, res) => {
 router.put('/:id', upload.single('imageFile'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, category, location, year, description, sketchfabId, sketchfabTitle, imageUrl } = req.body;
+    const { title, category, location, year, description, sketchfabId, sketchfabTitle, imageUrl, starred } = req.body;
 
     let image = undefined;
 
@@ -123,6 +134,22 @@ router.put('/:id', upload.single('imageFile'), async (req, res) => {
       image = `/images/${req.file.filename}`;
     } else if (imageUrl) {
       image = imageUrl;
+    }
+
+    let parsedStarred = undefined;
+    if (starred !== undefined) {
+      parsedStarred = starred === 'true' || starred === true;
+      if (parsedStarred) {
+        const currentProjects = projectService.getProjects();
+        // Check if it's already starred to avoid counting itself
+        const currentProject = currentProjects.find(p => p.id === Number(id));
+        if (!currentProject?.starred) {
+          const starredCount = currentProjects.filter(p => p.starred).length;
+          if (starredCount >= 3) {
+            return res.status(400).json({ success: false, message: 'Maximum of 3 projects can be starred.' });
+          }
+        }
+      }
     }
 
     const updateData = {
@@ -133,7 +160,8 @@ router.put('/:id', upload.single('imageFile'), async (req, res) => {
       ...(description && { description }),
       ...(image && { image }),
       ...(sketchfabId !== undefined && { sketchfabId }),
-      ...(sketchfabTitle !== undefined && { sketchfabTitle })
+      ...(sketchfabTitle !== undefined && { sketchfabTitle }),
+      ...(parsedStarred !== undefined && { starred: parsedStarred })
     };
 
     const result = await projectService.updateProject(id, updateData);

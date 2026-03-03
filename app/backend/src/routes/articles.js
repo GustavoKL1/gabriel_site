@@ -55,7 +55,7 @@ router.get('/', (req, res) => {
 
 router.post('/', upload.single('imageFile'), async (req, res) => {
   try {
-    const { title, content, author, category, date, imageUrl } = req.body;
+    const { title, content, author, category, date, imageUrl, starred } = req.body;
 
     // Validate required fields fast
     if (!title || !content || !author || !category) {
@@ -72,13 +72,24 @@ router.post('/', upload.single('imageFile'), async (req, res) => {
       return res.status(400).json({ success: false, message: 'Missing image file or imageUrl' });
     }
 
+    const isStarred = starred === 'true' || starred === true;
+
+    if (isStarred) {
+      const currentArticles = articleService.getArticles();
+      const starredCount = currentArticles.filter(a => a.starred).length;
+      if (starredCount >= 3) {
+        return res.status(400).json({ success: false, message: 'Maximum of 3 articles can be starred.' });
+      }
+    }
+
     const articleData = {
       title,
       content,
       author,
       category,
       date: date || new Date().toISOString(),
-      imageUrl: image
+      imageUrl: image,
+      starred: isStarred
     };
 
     const newArticle = await articleService.addArticle(articleData);
@@ -94,7 +105,7 @@ router.post('/', upload.single('imageFile'), async (req, res) => {
 router.put('/:id', upload.single('imageFile'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, content, author, category, date, imageUrl } = req.body;
+    const { title, content, author, category, date, imageUrl, starred } = req.body;
 
     let image = undefined;
 
@@ -104,13 +115,30 @@ router.put('/:id', upload.single('imageFile'), async (req, res) => {
       image = imageUrl;
     }
 
+    let parsedStarred = undefined;
+    if (starred !== undefined) {
+      parsedStarred = starred === 'true' || starred === true;
+      if (parsedStarred) {
+        const currentArticles = articleService.getArticles();
+        // Check if it's already starred to avoid counting itself
+        const currentArticle = currentArticles.find(a => a.id === Number(id));
+        if (!currentArticle?.starred) {
+          const starredCount = currentArticles.filter(a => a.starred).length;
+          if (starredCount >= 3) {
+            return res.status(400).json({ success: false, message: 'Maximum of 3 articles can be starred.' });
+          }
+        }
+      }
+    }
+
     const updateData = {
       ...(title && { title }),
       ...(content && { content }),
       ...(author && { author }),
       ...(category && { category }),
       ...(date && { date }),
-      ...(image && { imageUrl: image })
+      ...(image && { imageUrl: image }),
+      ...(parsedStarred !== undefined && { starred: parsedStarred })
     };
 
     const result = await articleService.updateArticle(id, updateData);
