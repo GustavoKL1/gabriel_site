@@ -68,19 +68,24 @@ export default function Hero() {
           isLoaded ? 'scale-100' : 'scale-110'
         }`}
       >
-        <img
-          src="/images/hero-bg.jpg"
-          srcSet="
-            /images/hero-bg-640.jpg 640w,
-            /images/hero-bg-1024.jpg 1024w,
-            /images/hero-bg.jpg 1344w
-          "
-          sizes="100vw"
-          fetchPriority="high"
-          loading="eager"
-          alt="Canteiro de obras"
-          className="w-full h-full object-cover"
-        />
+        <picture>
+          <source
+            type="image/webp"
+            srcSet="
+              /images/hero-bg-640.webp 640w,
+              /images/hero-bg-1024.webp 1024w,
+              /images/hero-bg.webp 1344w
+            "
+            sizes="100vw"
+          />
+          <img
+            src="/images/hero-bg.jpg"
+            fetchPriority="high"
+            loading="eager"
+            alt="Canteiro de obras"
+            className="w-full h-full object-cover"
+          />
+        </picture>
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/70" />
       </div>
