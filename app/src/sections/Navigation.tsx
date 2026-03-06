@@ -13,13 +13,31 @@ const navLinks = [
 export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('#hero');
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 100);
+
+      // Determine active section
+      let currentSection = '#hero';
+      for (const link of navLinks) {
+        const element = document.querySelector(link.href);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          // If the top of the section is somewhat near the top of the viewport
+          if (rect.top <= 150 && rect.bottom >= 150) {
+            currentSection = link.href;
+            break;
+          }
+        }
+      }
+      setActiveSection(currentSection);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    // Initial check
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -73,21 +91,27 @@ export default function Navigation() {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-8">
-              {navLinks.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollToSection(link.href);
-                  }}
-                  className={`text-sm font-medium transition-colors hover:text-engine-blue ${
-                    isScrolled ? 'text-gray-700' : 'text-white/90'
-                  }`}
-                >
-                  {link.label}
-                </a>
-              ))}
+              {navLinks.map((link) => {
+                const isActive = activeSection === link.href;
+                return (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    aria-current={isActive ? 'true' : undefined}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      scrollToSection(link.href);
+                    }}
+                    className={`text-sm font-medium transition-colors hover:text-engine-blue ${
+                      isActive
+                        ? 'text-engine-blue'
+                        : isScrolled ? 'text-gray-700' : 'text-white/90'
+                    }`}
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
             </div>
 
             {/* CTA Button */}
@@ -141,19 +165,27 @@ export default function Navigation() {
         >
           <div className="p-6 pt-20">
             <div className="space-y-2">
-              {navLinks.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollToSection(link.href);
-                  }}
-                  className="block px-4 py-3 text-lg font-medium text-gray-900 hover:bg-engine-light hover:text-engine-blue rounded-lg transition-colors"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {navLinks.map((link) => {
+                const isActive = activeSection === link.href;
+                return (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    aria-current={isActive ? 'true' : undefined}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      scrollToSection(link.href);
+                    }}
+                    className={`block px-4 py-3 text-lg font-medium rounded-lg transition-colors ${
+                      isActive
+                        ? 'text-engine-blue bg-engine-light'
+                        : 'text-gray-900 hover:bg-engine-light hover:text-engine-blue'
+                    }`}
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
             </div>
 
             <div className="mt-8 pt-8 border-t border-gray-200">
